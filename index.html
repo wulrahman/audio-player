@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+  <html>
+    <header>
+      <title>My Player</title>
+      <meta type="description" content="HTML Audio Player">
+    </header>
+    <style>
+    body {
+        background-color: hsl(187deg 8% 74%);
+        width: 700px;
+        margin: 20px auto;
+    }
+    #body-content h1 {
+      padding: 20px;
+      margin: 0;
+    }
+    div#body-content {
+      margin: 0;
+      padding: 0;
+      background-color: white;
+    }
+    #player-body {
+      position: relative;
+      width:100%;
+      height:50px;
+      background-color: #3F51B5;
+    }
+    #player-body ul {
+      padding:0;
+      margin:0;
+      display: flex;
+      flex-flow: column nowrap;
+      flex-direction:row;
+      height: 100%;
+      align-items:stretch;
+      align-content: flex-start;
+      list-style:none;
+    }
+    #player-body ul #audio-progress {
+      height: 10px;
+      padding: 20px;
+    }
+
+    #audio-progress #main-bar, #audio-progress #loading-bar {
+      width: 0%;
+      height: 100%;
+      position: relative;
+    }
+
+    #audio-progress #loading-bar {
+      background-color: white;
+      -webkit-transform: translateY(-100%);
+      transform: translateY(-100%);
+      border-radius: 10px;
+    }
+
+    .player-width.width-80-100 {
+      width:80%;
+    }
+    .player-width.width-10-100 {
+      width: 10%;
+    }
+    .player-width {
+      flex: 1 1 auto;
+      height:100%;
+    }
+    .player-width input[type="button"]   {
+        flex: 1 1 auto;
+        width:100%;
+        height:100%;
+        font-size: 20px;
+        color: white;
+        font-weight: bold;
+        border: 0;
+        background-color: transparent;
+    }
+
+    .player-width input[type="button"]:focus {
+      outline:none;
+    }
+
+    .player-width #volume[type=range][orient=vertical] {
+        writing-mode: bt-lr; /* IE */
+        -webkit-appearance: slider-vertical; /* WebKit */
+        width: 8px;
+        height: 175px;
+        padding: 0 5px;
+    }
+
+    .player-width #volume[type="range"] {
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      border:0;
+      margin:0;
+      padding:0;
+      -webkit-appearance: none;
+      background-color: white;
+      border-radius: 5px;
+    }
+
+    .player-width #volume[type="range"]:focus {
+      outline:none;
+    }
+
+    .player-width div#range_main {
+        padding: 20px;
+        height: 10px;
+        display: block;
+        margin: 0;
+        line-height: 0;
+    }
+
+    .player-width #volume[type="range"]::-webkit-slider-runnable-track {
+      height: 100%;
+      -webkit-appearance: none;
+      border-radius: 5px;
+      color: #13bba4;
+    }
+
+    .player-width #volume[type="range"]::-webkit-slider-thumb {
+      width: 10px;
+      -webkit-appearance: none;
+      height: 100%;
+      cursor: ew-resize;
+      background: #434343;
+      border-radius: 5px;
+      box-shadow: -80px 0 0 80px gray;
+    }
+
+    #audio-progress #main-bar.resizable {
+      background: gray;
+      position: relative;
+      border-radius: 10px;
+      z-index: 2;
+    }
+
+    #audio-progress #main-bar #resizer {
+      width: 10px;
+      height: 100%;
+      background: #673AB7;
+      position:absolute;
+      right: -15px;
+      padding: 5px;
+      bottom: 0;
+      top: 0;
+      margin: -5px 0 0 0;
+      cursor: se-resize;
+      border-radius: 10px;
+    }     
+    </style>
+    <body>
+      <div id="body-main">
+        <div id="player-body">
+          <ul>
+            <li class="player-width width-10-100">
+              <input type="button" id="play-button" value="&#9658;"/>
+              <input type="button" id="stop-button" value="| |"/>
+            </li>
+            <li class="player-width width-80-100">
+              <div id="audio-progress">
+                <div id="main-bar" data-value="0" class="resizable">
+                  <div id="resizer"></div>
+                </div>
+                <div id="loading-bar" data-value="0"></div>
+              </div>
+            </li>
+            <li class="player-width width-10-100">
+              <div id="range_main">
+                <input id="volume" type="range" min="0" max="1" step="0.1"/>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </body>
+  </html>
+<script>
+var play_button = document.getElementById("play-button");
+var stop_button = document.getElementById("stop-button");
+var loading_bar = document.getElementById("loading-bar");
+var main_bar = document.getElementById("main-bar");
+var volume_range = document.getElementById("volume")
+var audio_progress = document.getElementById("audio-progress");
+var resizer = document.getElementById("resizer");
+var startX, startWidth, step_size;
+var main_audio = new Audio('file:///Users/wulrahman/Desktop/Example/audio-player/bensound-creativeminds.mp3');
+stop_button.style.display = "none";
+
+//var main_audio = new Audio('http://geralex.site/media/audio/brain-music.mp3');
+
+//var main_audio = new Audio('file:///Users/wulrahman/Desktop/Example/brain-music.mp3');
+
+main_audio.onloadedmetadata = (event) => {
+
+  volume_range.value = main_audio.volume
+  step_size = 100/main_audio.duration;
+
+  main_audio.ontimeupdate = (event) => {
+    width = (step_size * main_audio.currentTime);
+    main_bar.style.width = width + "%";
+  };
+
+  main_audio.onprogress = (event) => {
+    var buffered_time = main_audio.buffered.end(main_audio.buffered.length-1);
+    var loading_width = (step_size * buffered_time);
+    loading_bar.style.width = loading_width + "%";
+  };
+
+  play_button.onclick = (event) => {
+    main_audio.play();
+  };
+
+  main_audio.onplay = (event) => {
+    play_button.style.display = "none";
+    stop_button.style.display = "block";
+  };
+
+  stop_button.onclick = (event) => {
+    main_audio.pause();
+  };
+
+  main_audio.onpause = (event) => {
+    play_button.style.display = "block";
+    stop_button.style.display = "none";
+  };
+
+  volume_range.onchange = (event) => {
+    main_audio.volume = volume_range.value;
+  }
+
+  resizer.onmousedown = function initDrag(e) {
+    startX = e.clientX;
+    startWidth = parseInt(document.defaultView.getComputedStyle(main_bar).width, 10);
+    document.documentElement.addEventListener('mousemove', doDrag, false);
+    document.documentElement.addEventListener('mouseup', stopDrag, false);
+  };
+
+  function doDrag(e) {
+    var new_width = (startWidth + e.clientX - startX);
+    var percentage = new_width/audio_progress.clientWidth;
+
+    if(percentage < 1) {
+      main_bar.style.width = (percentage * 100) + '%';
+      main_audio.currentTime = percentage * main_audio.duration;
+    }
+    else {
+      main_bar.style.width = '100%';
+      main_audio.currentTime = main_audio.duration;
+    }
+    main_audio.play();
+  }
+
+  function stopDrag(e) {
+      document.documentElement.removeEventListener('mousemove', doDrag, false);    
+      document.documentElement.removeEventListener('mouseup', stopDrag, false);
+  }
+
+};
+
+  // The duration variable now holds the duration (in seconds) of the audio clip 
+
+</script>
